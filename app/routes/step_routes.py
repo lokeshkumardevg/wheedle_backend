@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 import os
 import time
+from datetime import datetime
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_docs
 
 steps_bp = Blueprint('steps', __name__)
 
@@ -17,6 +19,7 @@ def create_step():
         data = {
             'title': title,
             'description': description,
+            'createdAt': datetime.utcnow(),
         }
 
         if 'image' in request.files:
@@ -37,9 +40,7 @@ def get_steps():
     try:
         from ..db import mongo
         steps = list(mongo.db.steps.find().sort('createdAt', 1))
-        for s in steps:
-            s['_id'] = str(s['_id'])
-        return jsonify(steps)
+        return jsonify(serialize_docs(steps))
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 

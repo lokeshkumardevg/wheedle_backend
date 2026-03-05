@@ -4,6 +4,7 @@ import time
 from ..models import Job
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_docs
 
 job_bp = Blueprint('job', __name__)
 
@@ -44,9 +45,7 @@ def create_job():
 def get_jobs():
     try:
         jobs = Job.find_all()
-        for job in jobs:
-            job['_id'] = str(job['_id'])
-        return jsonify(jobs)
+        return jsonify(serialize_docs(jobs))
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 

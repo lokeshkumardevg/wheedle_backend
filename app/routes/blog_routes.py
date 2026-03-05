@@ -7,6 +7,7 @@ from ..models import Blog
 from ..middleware.auth import token_required
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_doc, serialize_docs
 
 blog_bp = Blueprint('blog', __name__)
 
@@ -58,17 +59,13 @@ def create_blog():
 def get_blogs():
     try:
         blogs = Blog.find_all()
-        # Fix image field and convert ObjectId to string for JSON serialization
-        results = []
-        for blog in blogs:
-            blog['_id'] = str(blog['_id'])
-            # Match front-end expectation for blogImage
-            blog['blogImage'] = blog.get('blogImage') or blog.get('image') or ""
-            results.append(blog)
-        
+        results = serialize_docs(blogs)
+        # Normalize image field
+        for blog in results:
+            blog['blogImage'] = blog.get('blogImage') or blog.get('image') or ''
         return jsonify(results)
     except Exception as e:
-        print("GET BLOGS ERROR:", e)
+        print('GET BLOGS ERROR:', e)
         return jsonify({'message': str(e)}), 500
 
 @blog_bp.route('/<slug>', methods=['GET'])
@@ -77,8 +74,7 @@ def get_blog_by_slug(slug):
         blog = Blog.find_by_slug(slug)
         if not blog:
             return jsonify({'message': 'Blog not found'}), 404
-        blog['_id'] = str(blog['_id'])
-        return jsonify(blog)
+        return jsonify(serialize_doc(blog))
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 

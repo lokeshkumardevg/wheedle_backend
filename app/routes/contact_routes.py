@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ..models import Contact
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_doc, serialize_docs
 
 contact_bp = Blueprint('contact', __name__)
 
@@ -17,9 +18,7 @@ def create_contact():
 def get_contacts():
     try:
         contacts = Contact.find_all()
-        for contact in contacts:
-            contact['_id'] = str(contact['_id'])
-        return jsonify(contacts)
+        return jsonify(serialize_docs(contacts))
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 
@@ -45,7 +44,7 @@ def update_status(id):
         )
         if updated:
             updated['_id'] = str(updated['_id'])
-        return jsonify({'success': True, 'contact': updated})
+        return jsonify({'success': True, 'contact': serialize_doc(updated)})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 

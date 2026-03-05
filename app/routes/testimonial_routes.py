@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 import os
 import time
+from datetime import datetime
 from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_docs
 
 testimonial_bp = Blueprint('testimonial', __name__)
 
@@ -18,6 +20,7 @@ def create_testimonial():
         data = {
             'name': name,
             'message': message,
+            'createdAt': datetime.utcnow(),
         }
 
         if 'image' in request.files:
@@ -37,10 +40,8 @@ def create_testimonial():
 def get_testimonials():
     try:
         from ..db import mongo
-        testimonials = list(mongo.db.testimonials.find())
-        for t in testimonials:
-            t['_id'] = str(t['_id'])
-        return jsonify(testimonials)
+        testimonials = list(mongo.db.testimonials.find().sort('createdAt', -1))
+        return jsonify(serialize_docs(testimonials))
     except Exception as e:
         return jsonify({'message': str(e)}), 500
 

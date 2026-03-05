@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
+from datetime import datetime
 from bson.objectid import ObjectId
+from ..utils.serializer import serialize_docs
 
 formleads_bp = Blueprint('formleads', __name__)
 
@@ -7,6 +9,7 @@ formleads_bp = Blueprint('formleads', __name__)
 def create_form_lead():
     try:
         data = request.get_json()
+        data['createdAt'] = datetime.utcnow()
         from ..db import mongo
         mongo.db.formleads.insert_one(data)
         return jsonify({'success': True})
@@ -17,10 +20,8 @@ def create_form_lead():
 def get_all_form_leads():
     try:
         from ..db import mongo
-        leads = list(mongo.db.formleads.find())
-        for lead in leads:
-            lead['_id'] = str(lead['_id'])
-        return jsonify(leads)
+        leads = list(mongo.db.formleads.find().sort('createdAt', -1))
+        return jsonify(serialize_docs(leads))
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
