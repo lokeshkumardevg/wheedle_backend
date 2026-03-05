@@ -7,6 +7,10 @@ from ..models import Admin
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Allow OPTIONS requests for CORS preflight
+        if request.method == "OPTIONS":
+            return jsonify({}), 200
+
         token = None
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']

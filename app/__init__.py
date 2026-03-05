@@ -27,10 +27,29 @@ def create_app():
 
     CORS(
         app,
+        supports_credentials=True,
         resources={r"/*": {"origins": "*"}},
-        allow_headers=["*"],
-        methods=["*"],
+        allow_headers=["Content-Type", "Authorization", "x-api-key", "Accept"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        expose_headers=["Content-Type", "Authorization"],
     )
+
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, x-api-key, Accept"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        return response
+
+    @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+    @app.route('/<path:path>', methods=['OPTIONS'])
+    def handle_options(path):
+        from flask import Response
+        return Response(status=200, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, Accept",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        })
 
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):
