@@ -55,6 +55,10 @@ def create_app():
     def serve_upload(filename):
         return send_from_directory(os.path.join(app.root_path, '../uploads'), filename)
 
+    @app.route('/py/api/uploads/<path:filename>')
+    def serve_upload_pyapi(filename):
+        return send_from_directory(os.path.join(app.root_path, '../uploads'), filename)
+
     app.register_blueprint(chat_bp, url_prefix="/py/api")
     app.register_blueprint(auth_bp, url_prefix="/py/api/auth")
     app.register_blueprint(blog_bp, url_prefix="/py/api/blogs")
