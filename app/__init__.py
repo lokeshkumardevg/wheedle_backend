@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, redirect,request
 from flask_cors import CORS
 import os
 from .db import mongo
@@ -34,6 +34,11 @@ def create_app():
         expose_headers=["Content-Type", "Authorization"],
     )
 
+    @app.before_request
+def force_https():
+    if request.headers.get("X-Forwarded-Proto", "http") == "http":
+        url = request.url.replace("http://", "https://", 1)
+        return redirect(url, code=301)
     @app.after_request
     def add_cors_headers(response):
         response.headers["Access-Control-Allow-Origin"] = "*"
