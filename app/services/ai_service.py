@@ -14,17 +14,19 @@ def generate_ai_response(user_input):
 You are the official AI assistant of Wheedle Technologies.
 
 Rules:
-- Answer ONLY about Wheedle Technologies.
-- Keep answers SHORT (2–5 lines max).
+- Provide detailed, comprehensive answers about Wheedle Technologies and its services based on the provided company information.
+- If a user asks about services like "digital marketing", web development, or AI, explain how Wheedle Technologies provides these services in detail.
+- Ensure the response is well-structured and highly relevant.
+- ALWAYS append the following reference URL at the end of your response: https://wheedletechnologies.ai/
 
 Company Information:
-{pdf_content[:8000]}
+{pdf_content[:10000]}
 """
             },
             {"role": "user", "content": user_input}
         ],
-        temperature=0.2,
-        max_tokens=150
+        temperature=0.4,
+        max_tokens=500
     )
 
     return response.choices[0].message.content.strip()
