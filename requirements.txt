@@ -9,3 +9,6 @@ PyPDF2==3.0.1
 python-dotenv==1.2.2
 python-slugify==8.0.4
 Werkzeug==3.1.8
+webdriver-manager
+selenium
+beautifulsoup4

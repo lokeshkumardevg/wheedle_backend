@@ -90,6 +90,25 @@ SERVICES = [
     {"name": "AI Solutions & Intelligent Automation", "url": "https://wheedletechnologies.ai/service/ai-solutions-and-intelligent-automation"}
 ]
 
+from webdriver_manager.core.os_manager import ChromeType
+
+def get_robust_driver(chrome_options):
+    try:
+        # 1. Standard Chrome via webdriver-manager
+        return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    except Exception:
+        pass
+    
+    try:
+        # 2. Chromium specifically via webdriver-manager (common for ubuntu servers)
+        chrome_options.binary_location = "/usr/bin/chromium-browser"
+        return webdriver.Chrome(service=Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()), options=chrome_options)
+    except Exception:
+        pass
+        
+    # 3. Native Selenium 4.6+ fallback
+    return webdriver.Chrome(options=chrome_options)
+
 # ==========================
 # Clean Content Extractor
 # ==========================
@@ -111,11 +130,8 @@ def scrape_service_details(url):
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        # ✅ FIXED DRIVER (uses webdriver-manager)
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+        # ✅ ROBUST DRIVER FALLBACKS
+        driver = get_robust_driver(chrome_options)
 
         driver.get(url)
         time.sleep(4)  # wait for JS content
@@ -205,13 +221,7 @@ def scrape_full_website():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    try:
-        driver = webdriver.Chrome(service=Service(), options=chrome_options)
-    except Exception:
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+    driver = get_robust_driver(chrome_options)
 
     try:
         def scrape_page(url, wait=6):
@@ -250,13 +260,7 @@ def scrape_career_page():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    try:
-        driver = webdriver.Chrome(service=Service(), options=chrome_options)
-    except Exception:
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+    driver = get_robust_driver(chrome_options)
 
     jobs = []
 
