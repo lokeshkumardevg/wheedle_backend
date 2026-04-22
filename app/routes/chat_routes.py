@@ -310,7 +310,8 @@ def check_api_key():
 # ==========================
 user_question_count = {}
 waiting_for_contact = {}
-MAX_QUESTIONS = 4
+chat_ended_state = {}
+MAX_QUESTIONS = 3
 
 # ==========================
 # Chatbot Route
@@ -333,36 +334,38 @@ def chat():
     if is_blocked(user_msg):
         return jsonify({"reply": "This request is not allowed.", "success": False})
 
+    if chat_ended_state.get(user_ip):
+        return jsonify({
+            "reply": "This chat has been closed. To explore further, please visit our website at https://wheedletechnologies.ai/ and take a free trial of our Digital Marketing AI tool.",
+            "success": True
+        })
+
     # If waiting for contact details
     if waiting_for_contact.get(user_ip):
-        parts = user_msg.split()
-        if len(parts) >= 2:
-            email = parts[0]
-            phone = parts[1]
-
+        if len(user_msg) >= 5: # Basic valid input check
             if contacts_collection is not None:
                 contacts_collection.insert_one({
-                    "email": email,
-                    "phone": phone,
+                    "contact_info": user_msg,
                     "ip": user_ip,
                     "created_at": datetime.utcnow()
                 })
 
             waiting_for_contact[user_ip] = False
+            chat_ended_state[user_ip] = True
             return jsonify({
-                "reply": "Thank you! Your contact details have been saved. Our team will contact you soon.",
+                "reply": "Thank you! Your information has been saved. The chat is now closed. You can visit our website at https://wheedletechnologies.ai/ and take a free trial of our Digital Marketing AI tool.",
                 "success": True
             })
 
         return jsonify({
-            "reply": "Please send Email and Phone Number like:\nexample@email.com 9876543210",
+            "reply": "Please provide better contact information (like Email and Phone Number).",
             "success": True
         })
 
     if user_question_count[user_ip] >= MAX_QUESTIONS:
         waiting_for_contact[user_ip] = True
         return jsonify({
-            "reply": "To assist you further, please share your Email ID and Phone Number. Our team will get in touch with you shortly."
+            "reply": "You have reached the maximum number of questions. To proceed, please share your contact information (Email and Phone Number)."
         })
 
     user_msg_lower = user_msg.lower()
